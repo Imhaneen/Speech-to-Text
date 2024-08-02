@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech to Text with Language Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        select, button {
+            font-size: 1em;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 50px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            background: #f9f9f9;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Speech to Text</h1>
+        <label for="language">Choose Language:</label>
+        <select id="language">
+            <option value="en-US">English (US)</option>
+            <option value="es-ES">Spanish</option>
+            <option value="fr-FR">French</option>
+            <option value="de-DE">German</option>
+            <option value="it-IT">Italian</option>
+            <option value="it-IT">Arabic</option>
+            <!-- Add more languages as needed -->
+        </select>
+        <button id="startButton">Start Listening</button>
+        <div id="result">Your speech will appear here...</div>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const resultDiv = document.getElementById('result');
+        const languageSelect = document.getElementById('language');
+
+        // Check for speech recognition support
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('Speech recognition not supported. Please use a modern browser.');
+        } else {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = true; // Keep recognizing speech until stopped
+            recognition.interimResults = false; // Only final results
+            recognition.lang = languageSelect.value; // Set initial language
+
+            recognition.onstart = () => {
+                startButton.textContent = 'Listening...';
+                startButton.disabled = true;
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                                        .map(result => result[0].transcript)
+                                        .join('');
+                resultDiv.textContent = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                startButton.textContent = 'Start Listening';
+                startButton.disabled = false;
+            };
+
+            recognition.onend = () => {
+                startButton.textContent = 'Start Listening';
+                startButton.disabled = false;
+            };
+
+            startButton.addEventListener('click', () => {
+                if (recognition.started) {
+                    recognition.stop();
+                    recognition.started = false;
+                } else {
+                    recognition.lang = languageSelect.value; // Update language
+                    recognition.start();
+                    recognition.started = true;
+                }
+            });
+
+            languageSelect.addEventListener('change', () => {
+                if (recognition.started) {
+                    recognition.stop();
+                    recognition.lang = languageSelect.value;
+                    recognition.start();
+                } else {
+                    recognition.lang = languageSelect.value;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
